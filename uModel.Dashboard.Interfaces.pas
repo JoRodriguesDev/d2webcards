@@ -38,6 +38,7 @@ type
     function LinkUrl(AUrl: string): iModelDashboardCard;
     function OnClick(AValue: string): iModelDashboardCard;
     function Generate: string;
+    function Update: string;
   end;
 
   iModelDashboardFactory = interface
@@ -48,4 +49,3 @@ type
 implementation
 
 end.
-
