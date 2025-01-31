@@ -19,6 +19,7 @@ type
     FDecimal: string;
     FPrefix: string;
     FSuffix: string;
+
   public
     constructor Create;
     destructor Destroy; override;
@@ -36,6 +37,7 @@ type
     function Prefix(AValue: string): iModelCountUp;
     function Suffix(AValue: string): iModelCountUp;
     function Generate: string;
+    function update: string;
   end;
 
 implementation
@@ -126,10 +128,11 @@ end;
 function TModelCountUp.Generate: string;
 begin
   Result := Format(
-    'var countUp = new CountUp(''%s'', %s, %s, %d, %s, {' +
+    'window.countUp%s = new CountUp(''%s'', %s, %s, %d, %s, {' +
     'useEasing: %s, useGrouping: %s, separator: ''%s'', decimal: ''%s'', prefix: ''%s'', suffix: ''%s''});' + sLineBreak +
-    'countUp.start();',
+    'window.countUp%s.start();',
     [
+      FTargetElement,
       FTargetElement,
       StringReplace(FloatToStr(FStartValue), ',', '.', [rfReplaceAll]),
       StringReplace(FloatToStr(FEndValue), ',', '.', [rfReplaceAll]),
@@ -140,9 +143,15 @@ begin
       FSeparator,
       FDecimal,
       FPrefix,
-      FSuffix
+      FSuffix,
+      FTargetElement
     ]
   );
+end;
+
+function TModelCountUp.update: string;
+begin
+  Result := Format('window.countUp%s.update(%s);', [FTargetElement, StringReplace(FloatToStr(FEndValue), ',', '.', [rfReplaceAll])]);
 end;
 
 class function TModelCountUp.New: iModelCountUp;
@@ -151,4 +160,3 @@ begin
 end;
 
 end.
-
