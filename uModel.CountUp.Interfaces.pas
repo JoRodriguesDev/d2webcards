@@ -20,9 +20,9 @@ type
     function Prefix(AValue: string): iModelCountUp;
     function Suffix(AValue: string): iModelCountUp;
     function Generate: string;
+    function Update: string;
   end;
 
 implementation
 
 end.
-
