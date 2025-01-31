@@ -4,11 +4,12 @@ interface
 
 uses
   uModel.Dashboard.Interfaces,
-  System.SysUtils;
+  System.SysUtils, uModel.CountUp.Interfaces;
 
 type
   TModelDashboardCard = class(TInterfacedObject, iModelDashboardCard)
   private
+    Fid               : string;
     FTitle            : string;
     FValue            : string;
     FStartValue       : Double;
@@ -20,7 +21,9 @@ type
     FLinkText         : string;
     FLinkUrl          : string;
     FOnClick          : string;
+    FCountUp          : iModelCountUp;
   public
+    function id(AValue: string): iModelDashboardCard;
     function Title(ATitle: string): iModelDashboardCard;
     function Value(AValue: string): iModelDashboardCard;
     function StartValue(AValue: double): iModelDashboardCard;
@@ -33,6 +36,7 @@ type
     function LinkUrl(AUrl: string): iModelDashboardCard;
     function OnClick(AValue: string): iModelDashboardCard;
     function Generate: string;
+    function Update: string;
     class function New: iModelDashboardCard;
     constructor Create;
   end;
@@ -47,6 +51,7 @@ uses
 
 constructor TModelDashboardCard.Create;
 begin
+  Fid := Format('card%s', [IntToStr(Random(MaxInt))]);
   FTitle := '';
   FValue := '0';
   FBackgroundColor := primary;
@@ -54,6 +59,16 @@ begin
   FIconClass := '';
   FLinkText := 'Visualizar';
   FLinkUrl := '#';
+  FCountUp := TModelCountUp.New
+                            .TargetElement(Fid)
+                            .DecimalPlaces(2)
+                            .Duration(1.5)
+                            .UseEasing(True)
+                            .UseGrouping(True)
+                            .Separator('.')
+                            .Decimal(',')
+                            .Prefix('R$ ')
+                            .Suffix('')
 end;
 
 function TModelDashboardCard.EndValue(AValue: double): iModelDashboardCard;
@@ -66,6 +81,12 @@ function TModelDashboardCard.Title(ATitle: string): iModelDashboardCard;
 begin
   FTitle := ATitle;
   Result := Self;
+end;
+
+function TModelDashboardCard.Update: string;
+begin
+  FCountUp.EndValue(FEndValue);
+  result := FCountUp.update;
 end;
 
 function TModelDashboardCard.UseCountUp(AValue: Boolean): iModelDashboardCard;
@@ -104,6 +125,12 @@ begin
   Result := Self;
 end;
 
+function TModelDashboardCard.id(AValue: string): iModelDashboardCard;
+begin
+  result := Self;
+  Fid := AValue;
+end;
+
 function TModelDashboardCard.LinkText(AText: string): iModelDashboardCard;
 begin
   FLinkText := AText;
@@ -131,7 +158,6 @@ function TModelDashboardCard.Generate: string;
 begin
   var LBGColorClass    := 'bg-'    + GetEnumName(TypeInfo(EnumColors), Ord(FBackgroundColor)).ToLower;
   var LTextColorClass  := 'text-'  + GetEnumName(TypeInfo(EnumColors), Ord(FTextColor)).ToLower;
-  var LUniqueID        := Format('card%s', [IntToStr(Random(MaxInt))]);
 
   Result :=
     '<div class="card ' + LBGColorClass + ' ' + LTextColorClass +'">' +
@@ -139,7 +165,7 @@ begin
     '    <div class="d-flex justify-content-between align-items-center">' +
     '      <div class="me-3">' +
     '        <div class="small">'+ FTitle +'</div>' +
-    '        <div id="'+ LUniqueID +'" class="text-lg fw-bold">' + FValue + '</div>' +
+    '        <div id="'+ FID +'" class="text-lg fw-bold">' + FValue + '</div>' +
     '      </div>' +
     '      <i class="'+ FIconClass +'"></i>' +
     '    </div>' +
@@ -155,18 +181,9 @@ begin
       Result := Result + '<script>' +
       'document.addEventListener("DOMContentLoaded", () => {' +
 
-        TModelCountUp.New
-          .TargetElement(LUniqueID)
+        FCountUp
           .StartValue(FStartValue)
           .EndValue(FEndValue)
-          .DecimalPlaces(2)
-          .Duration(1.5)
-          .UseEasing(True)
-          .UseGrouping(True)
-          .Separator('.')
-          .Decimal(',')
-          .Prefix('R$ ')
-          .Suffix('')
           .Generate +
 
       '});' +
@@ -175,4 +192,3 @@ begin
 end;
 
 end.
-
